@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -20,19 +20,19 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LobbyScreen(navController: NavController){
+fun LobbyScreen(navController: NavController, uniqueID: String){
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Lobby") },
                 actions = {
-                    IconButton(onClick = { navController.navigate("menu") }) {
+                    IconButton(onClick = {
+                        navController.navigate("account/${uniqueID}")}) {
                         Icon(
-                            imageVector = Icons.Default.Menu,
-                            contentDescription = "menu",
+                            imageVector = Icons.Default.AccountCircle,
+                            contentDescription = "account",
                             modifier = Modifier.padding(3.dp)
                         )
                     }

@@ -5,14 +5,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.activity.compose.setContent
 import androidx.compose.material3.Surface
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.rememberNavController
 import com.leokarlsson.connect4.ui.theme.Connect4Theme
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.composable
+import androidx.navigation.compose.NavHost
 import com.leokarlsson.connect4.lobbyView.CreatePlayerScreen
 import com.leokarlsson.connect4.lobbyView.LobbyScreen
+import com.leokarlsson.connect4.lobbyView.AccountScreen
+import com.leokarlsson.connect4.lobbyView.DeleteAccount
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.composable
+import com.leokarlsson.connect4.lobbyView.AccountStatus
+import com.leokarlsson.connect4.lobbyView.SearchBar
 
 class MainActivity : ComponentActivity() {
 
@@ -29,15 +33,21 @@ class MainActivity : ComponentActivity() {
                         composable("createPlayer"){
                             CreatePlayerScreen(navController = navController)
                         }
-                        composable("lobby"){
-                            LobbyScreen(navController = navController)
+                        composable("lobby/{uniqueID}"){
+                            LobbyScreen(navController = navController, uniqueID = it.arguments?.getString("uniqueID")?:"")
                         }
-                        composable("menu"){
-
+                        composable("account/{uniqueID}"){ backStackEntry ->
+                            val uniqueID = backStackEntry.arguments?.getString("uniqueID")?:""
+                            val account = AccountStatus(wins = 0, loss = 0, draws = 0, gamesPlayed = 0)
+                            AccountScreen(navController = navController, uniqueID = uniqueID, account = account)
+                        }
+                        composable("DeleteAccount"){
+                            DeleteAccount(navController = navController)
                         }
                         composable("search"){
-
+                            SearchBar()
                         }
+
                     }
                 }
             }
