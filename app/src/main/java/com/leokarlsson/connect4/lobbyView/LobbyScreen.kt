@@ -18,6 +18,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.Button
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,13 +48,18 @@ fun LobbyScreen(navController: NavController, uniqueID: String){
                 Icon(imageVector = Icons.Default.Search, contentDescription = "search")
             }
         },
-        content = {paddingValues ->
+        content = { paddingValues ->
             Column(
                 modifier = Modifier
                     .padding(paddingValues)
-                    .fillMaxWidth()
-            ){
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
                 Text("Players: ", modifier = Modifier.padding(start = 15.dp))
+
+                Button(onClick = { navController.navigate("localGame") }) {
+                    Text("Local Game")
+                }
             }
         }
     )

@@ -17,6 +17,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.composable
 import com.leokarlsson.connect4.lobbyView.AccountStatus
 import com.leokarlsson.connect4.lobbyView.SearchBar
+import com.leokarlsson.connect4.gameEngine.Connect4LogicLocal
 
 class MainActivity : ComponentActivity() {
 
@@ -46,6 +47,9 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("search"){
                             SearchBar()
+                        }
+                        composable("localGame"){
+                            Connect4LogicLocal()
                         }
 
                     }
