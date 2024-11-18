@@ -25,14 +25,14 @@ import androidx.compose.material3.Button
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LobbyScreen(navController: NavController, uniqueID: String){
+fun LobbyScreen(navController: NavController, uniqueID: String, gameTag: String){
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Lobby") },
                 actions = {
                     IconButton(onClick = {
-                        navController.navigate("account/${uniqueID}")}) {
+                        navController.navigate("account/${uniqueID}/${gameTag}")}) {
                         Icon(
                             imageVector = Icons.Default.AccountCircle,
                             contentDescription = "account",
@@ -57,7 +57,7 @@ fun LobbyScreen(navController: NavController, uniqueID: String){
             ) {
                 Text("Players: ", modifier = Modifier.padding(start = 15.dp))
 
-                Button(onClick = { navController.navigate("localGame") }) {
+                Button(onClick = { navController.navigate("localGame/${uniqueID}/${gameTag}") }) {
                     Text("Local Game")
                 }
             }

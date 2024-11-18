@@ -13,19 +13,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.material3.Button
+import androidx.navigation.NavController
 
 
 @Composable
-fun Connect4LogicLocal(){
+fun Connect4LogicLocal(navController: NavController, uniqueID: String, gameTag: String){
     var board by remember { mutableStateOf(Array(6){IntArray(7){-1} }) }
-    var currentPlayer by remember { mutableStateOf(0)}
-    var winner by remember { mutableStateOf(-1)}
+    var currentPlayer by remember { mutableIntStateOf(0)}
+    var winner by remember { mutableIntStateOf(-1)}
 
     Column(
         modifier = Modifier
@@ -48,13 +49,25 @@ fun Connect4LogicLocal(){
         Spacer(modifier = Modifier.height(16.dp))
 
         if(winner != -1){
-            GameOverView(winner){
+            GameOverView(winner,{
                 board = Array(6){IntArray(7){-1} }
                 currentPlayer = 0
                 winner = -1
-            }
+            }, navController, uniqueID, gameTag)
         }else{
             Text(text = "Player ${currentPlayer + 1}'s turn", color = Color.Black)
+        }
+
+        Spacer(modifier = Modifier.height(40.dp))
+
+        Button(
+            onClick = {
+                navController.navigate("lobby/${uniqueID}/${gameTag}"){
+                    popUpTo("lobby/${uniqueID}/${gameTag}"){inclusive = true}
+                }
+            }
+        ){
+            Text(text = "Quit Game")
         }
     }
 }
@@ -90,25 +103,3 @@ fun checkForWin(board: Array<IntArray>, row: Int, column: Int, player: Int): Boo
     }
 }
 
-@Composable
-fun GameOverView(player: Int, onRestart: () -> Unit){
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize()
-    ){
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(16.dp)
-        ){
-            Text(
-                text = "Player ${player + 1} wins!",
-                modifier = Modifier.padding(16.dp)
-            )
-            Button(
-                onClick = {
-                    onRestart()}){
-                Text("Restart Game")
-            }
-        }
-    }
-}

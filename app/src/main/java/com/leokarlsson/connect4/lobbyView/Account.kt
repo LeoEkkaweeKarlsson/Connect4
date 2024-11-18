@@ -1,6 +1,5 @@
 package com.leokarlsson.connect4.lobbyView
 
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,7 +32,7 @@ class AccountStatus(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AccountScreen(navController: NavController, uniqueID:String?, account: AccountStatus){
+fun AccountScreen(navController: NavController, uniqueID:String?, account: AccountStatus, gameTag: String ){
 
     Scaffold(
         topBar = {
@@ -56,6 +55,7 @@ fun AccountScreen(navController: NavController, uniqueID:String?, account: Accou
                 .padding(padding)
                 .fillMaxWidth()
         ){
+            Text(text = "GameTag: $gameTag", modifier = Modifier.padding(8.dp))
             Text(text = "Wins: ${account.wins}", modifier = Modifier.padding(8.dp))
             Text(text = "Losses: ${account.loss}", modifier = Modifier.padding(8.dp))
             Text(text = "Draws: ${account.draws}", modifier = Modifier.padding(8.dp))

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "752990553026",
+    "project_id": "connect4-4f82a",
+    "storage_bucket": "connect4-4f82a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:752990553026:android:3f0e8e62208f1ba4234c5b",
+        "android_client_info": {
+          "package_name": "com.leokarlsson.connect4"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBVHUAvFg3bZ-Sk-7zzVzNJ4miI3l9yxqQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -34,13 +34,13 @@ class MainActivity : ComponentActivity() {
                         composable("createPlayer"){
                             CreatePlayerScreen(navController = navController)
                         }
-                        composable("lobby/{uniqueID}"){
-                            LobbyScreen(navController = navController, uniqueID = it.arguments?.getString("uniqueID")?:"")
+                        composable("lobby/{uniqueID}/{gameTag}"){
+                            LobbyScreen(navController = navController, uniqueID = it.arguments?.getString("uniqueID")?:"", gameTag = it.arguments?.getString("gameTag")?:"")
                         }
-                        composable("account/{uniqueID}"){ backStackEntry ->
+                        composable("account/{uniqueID}/{gameTag}"){ backStackEntry ->
                             val uniqueID = backStackEntry.arguments?.getString("uniqueID")?:""
                             val account = AccountStatus(wins = 0, loss = 0, draws = 0, gamesPlayed = 0)
-                            AccountScreen(navController = navController, uniqueID = uniqueID, account = account)
+                            AccountScreen(navController = navController, uniqueID = uniqueID, account = account, gameTag = backStackEntry.arguments?.getString("gameTag")?:"")
                         }
                         composable("DeleteAccount"){
                             DeleteAccount(navController = navController)
@@ -48,8 +48,8 @@ class MainActivity : ComponentActivity() {
                         composable("search"){
                             SearchBar()
                         }
-                        composable("localGame"){
-                            Connect4LogicLocal()
+                        composable("localGame/{uniqueID}/{gameTag}"){
+                            Connect4LogicLocal(navController = navController, uniqueID = it.arguments?.getString("uniqueID")?:"", gameTag = it.arguments?.getString("gameTag")?:"")
                         }
 
                     }

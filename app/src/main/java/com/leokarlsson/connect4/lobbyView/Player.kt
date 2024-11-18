@@ -16,11 +16,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.material3.Button
 import java.util.UUID
 
-
 @Composable
 fun CreatePlayerScreen(navController:NavController){
-    var title by remember {mutableStateOf("")}
-    val isTitleValid = title.length > 3
+    var gameTag by remember {mutableStateOf("")}
+    val isTitleValid = gameTag.length > 3
 
     Scaffold{padding ->
         Column(
@@ -29,17 +28,17 @@ fun CreatePlayerScreen(navController:NavController){
                 .padding(padding),
         ){
             OutlinedTextField(
-                value = title,
+                value = gameTag,
                 onValueChange = { newTitle ->
-                    title = newTitle
+                    gameTag = newTitle
                 },
                 label = {Text("Name")},
                 isError = !isTitleValid,
             )
             Button(onClick = {
-                if(title.isNotBlank() && isTitleValid){
+                if(gameTag.isNotBlank() && isTitleValid){
                     val uniqueID = UUID.randomUUID().toString()
-                    navController.navigate("lobby/${uniqueID}")
+                    navController.navigate("lobby/${uniqueID}/${gameTag}")
                 }
             }){
                 Text("Create Player")
