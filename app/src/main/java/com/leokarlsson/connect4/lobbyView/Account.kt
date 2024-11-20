@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Button
+import com.google.firebase.firestore.FirebaseFirestore
+
 
 
 class AccountStatus(
@@ -39,7 +41,7 @@ fun AccountScreen(navController: NavController, uniqueID:String?, account: Accou
             TopAppBar(
                 title = {Text("Account")},
                 actions = {
-                    IconButton(onClick = {navController.navigate("DeleteAccount")}){
+                    IconButton(onClick = {navController.navigate("DeleteAccount/$uniqueID")}){
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Delete Account",
@@ -50,23 +52,40 @@ fun AccountScreen(navController: NavController, uniqueID:String?, account: Accou
             )
         }
     ){padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .padding(padding)
-                .fillMaxWidth()
-        ){
-            Text(text = "GameTag: $gameTag", modifier = Modifier.padding(8.dp))
-            Text(text = "Wins: ${account.wins}", modifier = Modifier.padding(8.dp))
-            Text(text = "Losses: ${account.loss}", modifier = Modifier.padding(8.dp))
-            Text(text = "Draws: ${account.draws}", modifier = Modifier.padding(8.dp))
-            Text(text = "Games Played: ${account.gamesPlayed}", modifier = Modifier.padding(8.dp))
-            Text(text = "PlayerID: ${uniqueID ?: "Not Available"}", modifier = Modifier.padding(8.dp))
+                .fillMaxSize()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column{
+                Text(text = "GameTag: $gameTag", modifier = Modifier.padding(8.dp))
+                Text(text = "Wins: ${account.wins}", modifier = Modifier.padding(8.dp))
+                Text(text = "Losses: ${account.loss}", modifier = Modifier.padding(8.dp))
+                Text(text = "Draws: ${account.draws}", modifier = Modifier.padding(8.dp))
+                Text(text = "Games Played: ${account.gamesPlayed}", modifier = Modifier.padding(8.dp))
+                Text(text = "PlayerID: ${uniqueID ?: "Not Available"}", modifier = Modifier.padding(8.dp))
+            }
+                Button(onClick = {
+                    navController.navigate("createPlayer")},
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(16.dp)
+                ){
+                    Text(text = "Log out")
+                }
+            }
         }
     }
 }
 
 @Composable
-fun DeleteAccount(navController: NavController){
+fun DeleteAccount(navController: NavController, uniqueID:String){
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxSize()
@@ -84,6 +103,8 @@ fun DeleteAccount(navController: NavController){
                 verticalAlignment = Alignment.CenterVertically
             ){
                 Button(onClick = {
+                    val db = FirebaseFirestore.getInstance()
+                    db.collection("User").document(uniqueID).delete()
                     navController.navigate("createPlayer"){
                         popUpTo("createPlayer"){ inclusive = true}
                     }

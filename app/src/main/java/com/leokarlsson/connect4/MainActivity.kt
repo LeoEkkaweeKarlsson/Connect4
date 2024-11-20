@@ -18,11 +18,17 @@ import androidx.navigation.compose.composable
 import com.leokarlsson.connect4.lobbyView.AccountStatus
 import com.leokarlsson.connect4.lobbyView.SearchBar
 import com.leokarlsson.connect4.gameEngine.Connect4LogicLocal
+import com.google.firebase.FirebaseApp
+import com.google.firebase.analytics.FirebaseAnalytics
+
 
 class MainActivity : ComponentActivity() {
+    private lateinit var firebaseAnalytics: FirebaseAnalytics
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FirebaseApp.initializeApp(this)
+        firebaseAnalytics = FirebaseAnalytics.getInstance(this)
 
         setContent{
             Connect4Theme{
@@ -42,11 +48,12 @@ class MainActivity : ComponentActivity() {
                             val account = AccountStatus(wins = 0, loss = 0, draws = 0, gamesPlayed = 0)
                             AccountScreen(navController = navController, uniqueID = uniqueID, account = account, gameTag = backStackEntry.arguments?.getString("gameTag")?:"")
                         }
-                        composable("DeleteAccount"){
-                            DeleteAccount(navController = navController)
+                        composable("DeleteAccount/{uniqueID}"){
+                            val uniqueID = it.arguments?.getString("uniqueID")?:""
+                            DeleteAccount(navController = navController, uniqueID = uniqueID)
                         }
                         composable("search"){
-                            SearchBar()
+                            SearchBar(navController = navController)
                         }
                         composable("localGame/{uniqueID}/{gameTag}"){
                             Connect4LogicLocal(navController = navController, uniqueID = it.arguments?.getString("uniqueID")?:"", gameTag = it.arguments?.getString("gameTag")?:"")
