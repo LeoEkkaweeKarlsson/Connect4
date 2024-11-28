@@ -20,13 +20,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.material3.Button
 import androidx.navigation.NavController
-
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FieldValue
 
 @Composable
-fun Connect4LogicLocal(navController: NavController, uniqueID: String, gameTag: String){
+fun Connect4LogicLocal(navController: NavController, uniqueID: String, gameTag: String, uniqueGameID: String){
     var board by remember { mutableStateOf(Array(6){IntArray(7){-1} }) }
     var currentPlayer by remember { mutableIntStateOf(0)}
     var winner by remember { mutableIntStateOf(-1)}
+    val db = FirebaseFirestore.getInstance()
+    var isWinRecorded by remember {mutableStateOf(false)}
 
     Column(
         modifier = Modifier
@@ -49,11 +52,18 @@ fun Connect4LogicLocal(navController: NavController, uniqueID: String, gameTag: 
         Spacer(modifier = Modifier.height(16.dp))
 
         if(winner != -1){
+            if(!isWinRecorded){
+                db.collection("User").document(uniqueID)
+                    .update("LocalWin", FieldValue.increment(1))
+                isWinRecorded = true
+            }
             GameOverView(winner,{
                 board = Array(6){IntArray(7){-1} }
                 currentPlayer = 0
                 winner = -1
-            }, navController, uniqueID, gameTag)
+                isWinRecorded = false
+            }, navController, uniqueID, gameTag, uniqueGameID)
+
         }else{
             Text(text = "Player ${currentPlayer + 1}'s turn", color = Color.Black)
         }

@@ -22,6 +22,10 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Button
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import java.util.UUID
 
 
 
@@ -48,12 +52,24 @@ fun SearchScreen(onSearch: (String) -> Unit){
     )
 }
 
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchBar(navController: NavController){
+fun SearchBar(navController: NavController, gameTag: String){
     var searchResults by remember { mutableStateOf<List<Map<String, Any>>>(emptyList())}
 
     Column{
+        TopAppBar(
+            title = {Text("Search Players")},
+            navigationIcon = {
+                IconButton(onClick = {navController.popBackStack()}){
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back"
+                    )
+                }
+            },
+        )
+
         SearchScreen { query ->
             if(query.isNotBlank()){
                 searchForPlayers(query){ results ->
@@ -70,7 +86,7 @@ fun SearchBar(navController: NavController){
             } else {
                 searchResults.forEach { player ->
                     val username = player["Username"] as? String ?: "Unknown"
-                    OtherPlayerInfo(username = username, navController)
+                    OtherPlayerInfo(receiverName = username, senderName = gameTag, navController)
                 }
             }
         }
@@ -78,14 +94,14 @@ fun SearchBar(navController: NavController){
 }
 
 @Composable
-fun OtherPlayerInfo(username: String, navController: NavController){
+fun OtherPlayerInfo(receiverName: String, senderName: String, navController: NavController){
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
     ){
         Text(
-            text = username,
+            text = receiverName,
             modifier = Modifier.padding(end = 8.dp)
         )
         IconButton(
@@ -95,17 +111,18 @@ fun OtherPlayerInfo(username: String, navController: NavController){
         ){
             Icon(
                 imageVector = Icons.Default.AccountCircle,
-                contentDescription = "Player Account for $username"
+                contentDescription = "Player Account for $receiverName"
             )
         }
         Spacer(modifier = Modifier.padding(10.dp))
         Button(onClick = {
             val db = FirebaseFirestore.getInstance()
+            val gameID = UUID.randomUUID().toString()
             val request = mapOf(
-                "Sender" to "",
-                "Receiver" to username,
+                "GameID" to gameID,
+                "Sender" to senderName,
+                "Receiver" to receiverName,
                 "Status" to "Pending",
-                "GameID" to ""
             )
             db.collection("GameRequest").add(request)
                 .addOnSuccessListener{

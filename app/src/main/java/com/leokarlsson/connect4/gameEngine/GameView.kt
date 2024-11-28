@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 
 @Composable
-fun GameOverView(player: Int, onRestart: () -> Unit, navController: NavController, uniqueID: String, gameTag: String){
+fun GameOverView(player: Int, onRestart: () -> Unit, navController: NavController, uniqueID: String, gameTag: String, uniqueGameID: String){
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxSize()

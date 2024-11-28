@@ -18,6 +18,7 @@ import java.util.UUID
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.ui.platform.LocalContext
 import android.widget.Toast
+import com.leokarlsson.connect4.gameEngine.GameRequestListener
 
 @Composable
 fun CreatePlayerScreen(navController:NavController){
@@ -49,7 +50,9 @@ fun CreatePlayerScreen(navController:NavController){
                         "Win" to 0,
                         "Loss" to 0,
                         "Draw" to 0,
-                        "Games Played" to 0
+                        "Games Played" to 0,
+                        "LocalWin" to 0,
+                        "Status" to "Online"
                     )
                     firestore.collection("User")
                         .document(uniqueID)
@@ -74,12 +77,19 @@ fun CreatePlayerScreen(navController:NavController){
                             if (!querySnapshot.isEmpty) {
                                 val document = querySnapshot.documents[0]
                                 val uniqueID = document.getString("ID") ?: ""
-                                Toast.makeText(context, "Login Successful!", Toast.LENGTH_SHORT)
-                                    .show()
-                                navController.navigate("lobby/${uniqueID}/${gameTag}")
+
+                                firestore.collection("User")
+                                    .document(document.id)
+                                    .update("Status", "Online")
+                                    .addOnSuccessListener {
+                                        Toast.makeText(context, "Login Successful!", Toast.LENGTH_SHORT).show()
+                                        navController.navigate("lobby/${uniqueID}/${gameTag}")
+                                    }
+                                    .addOnFailureListener({ exception ->
+                                            Toast.makeText(context, "Failed to login: ${exception.message}", Toast.LENGTH_SHORT).show()
+                                    })
                             } else {
-                                Toast.makeText(context, "Player not found", Toast.LENGTH_SHORT)
-                                    .show()
+                                Toast.makeText(context, "Player not found", Toast.LENGTH_SHORT).show()
                             }
                         }
                         .addOnFailureListener { exception ->

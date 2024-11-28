@@ -3,7 +3,6 @@ package com.leokarlsson.connect4.lobbyView
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
@@ -22,7 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Button
 import com.google.firebase.firestore.FirebaseFirestore
-
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
 
 class AccountStatus(
@@ -35,11 +34,19 @@ class AccountStatus(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountScreen(navController: NavController, uniqueID:String?, account: AccountStatus, gameTag: String ){
+    val firestore = FirebaseFirestore.getInstance()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {Text("Account")},
+                navigationIcon = {
+                    IconButton(onClick = {
+                        navController.popBackStack()
+                    }){
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
                 actions = {
                     IconButton(onClick = {navController.navigate("DeleteAccount/$uniqueID")}){
                         Icon(
@@ -72,6 +79,10 @@ fun AccountScreen(navController: NavController, uniqueID:String?, account: Accou
                 Text(text = "PlayerID: ${uniqueID ?: "Not Available"}", modifier = Modifier.padding(8.dp))
             }
                 Button(onClick = {
+                    firestore.collection("User")
+                        .document(uniqueID?: "")
+                        .update("Status", "Offline")
+
                     navController.navigate("createPlayer")},
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
