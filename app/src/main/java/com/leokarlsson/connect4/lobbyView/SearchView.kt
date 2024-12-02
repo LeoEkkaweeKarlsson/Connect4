@@ -54,8 +54,11 @@ fun SearchScreen(onSearch: (String) -> Unit){
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchBar(navController: NavController, gameTag: String){
+fun SearchBar(navController: NavController){
     var searchResults by remember { mutableStateOf<List<Map<String, Any>>>(emptyList())}
+    val userInfo = navController.previousBackStackEntry
+        ?.savedStateHandle
+        ?.get<UserInfo>("userInfo")
 
     Column{
         TopAppBar(
@@ -86,7 +89,7 @@ fun SearchBar(navController: NavController, gameTag: String){
             } else {
                 searchResults.forEach { player ->
                     val username = player["Username"] as? String ?: "Unknown"
-                    OtherPlayerInfo(receiverName = username, senderName = gameTag, navController)
+                    OtherPlayerInfo(receiverName = username, senderName = userInfo?.gameTag, navController)
                 }
             }
         }
@@ -94,7 +97,7 @@ fun SearchBar(navController: NavController, gameTag: String){
 }
 
 @Composable
-fun OtherPlayerInfo(receiverName: String, senderName: String, navController: NavController){
+fun OtherPlayerInfo(receiverName: String, senderName: String?, navController: NavController){
     Row(
         modifier = Modifier
             .fillMaxWidth()

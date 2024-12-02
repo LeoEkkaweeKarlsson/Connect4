@@ -24,21 +24,24 @@ import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.graphics.Color
 import com.google.firebase.firestore.FieldValue
-import java.util.UUID
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import com.leokarlsson.connect4.lobbyView.UserInfo
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OnlineGameInit(player1: String, player2: String, navController: NavController, gameTag: String){
-    val gameID = UUID.randomUUID().toString()
+fun OnlineGameInit( navController: NavController){
     var gameReady by remember {mutableStateOf(false)}
-    val firestore = FirebaseFirestore.getInstance()
+    val db = FirebaseFirestore.getInstance()
+    var gameDocID by remember {mutableStateOf("")}
+    val players = navController.previousBackStackEntry
+        ?.savedStateHandle
+        ?.get<Players>("players")
 
     Column{
         TopAppBar(
@@ -57,13 +60,18 @@ fun OnlineGameInit(player1: String, player2: String, navController: NavControlle
     }
 
     DisposableEffect(Unit){
-        val listener = firestore.collection("game").document(gameID)
+        val listener = db.collection("game")
+            .whereEqualTo("Player1", players?.player1)
+            .whereEqualTo("Player2", players?.player2)
+            .whereEqualTo("GameReady", "Yes")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     println("Error listening for game state: ${error.message}")
                     return@addSnapshotListener
                 }
-                if (snapshot != null && snapshot.exists()) {
+                if (snapshot != null && snapshot.documents.isNotEmpty()) {
+                    val doc = snapshot.documents.first()
+                    gameDocID = doc.id
                     gameReady = true
                 }
             }
@@ -72,12 +80,12 @@ fun OnlineGameInit(player1: String, player2: String, navController: NavControlle
         }
     }
     if(gameReady){
-        OnlineGame(players = listOf(player1, player2),
-            navController = navController,
-            uniqueID = player1,
-            gameTag = gameTag,
-            uniqueGameID = gameID
-        )
+        if (players != null) {
+            navController.navigate("onlineGame"){
+                navController.currentBackStackEntry?.savedStateHandle?.set("players", players)
+                navController.currentBackStackEntry?.savedStateHandle?.set("uniqueGameID", gameDocID)
+            }
+        }
     }else{
         Column(
             modifier = Modifier
@@ -89,18 +97,27 @@ fun OnlineGameInit(player1: String, player2: String, navController: NavControlle
             Text(text = "Waiting for the game to start...")
         }
     }
+    gameReady = false
 }
 
 @Composable
-fun OnlineGame(players: List<String>, navController: NavController, uniqueID: String, gameTag: String, uniqueGameID: String){
+fun OnlineGame(navController: NavController){
     var board by remember { mutableStateOf(Array(6){IntArray(7){-1} }) }
     var currentPlayer by remember { mutableIntStateOf(0)}
     var winner by remember { mutableIntStateOf(-1)}
     val db = FirebaseFirestore.getInstance()
     var isWinRecorded by remember {mutableStateOf(false)}
+    val userInfo = navController.previousBackStackEntry
+        ?.savedStateHandle
+        ?.get<UserInfo>("userInfo")
+    val players = navController.previousBackStackEntry
+        ?.savedStateHandle
+        ?.get<Players>("players")
 
     DisposableEffect(Unit){
-        val gameListener = db.collection("game").document(uniqueGameID)
+        val gameListener = db.collection("game")
+            .whereEqualTo("Player1", players?.player1)
+            .whereEqualTo("Player2", players?.player2)
             .addSnapshotListener { snapshot, error ->
                 if(error != null){
                     println("Error listening for game state: ${error.message}")
@@ -108,11 +125,11 @@ fun OnlineGame(players: List<String>, navController: NavController, uniqueID: St
                 }
                 if(snapshot != null && snapshot.exists()){
                     val data = snapshot.data ?: return@addSnapshotListener
-                    board = (data["board"] as? List<List<Long>>)
+                    board = (data["Board"] as? List<List<Long>>)
                         ?.map { row -> row.map {cell -> cell.toInt() }.toIntArray()}
                         ?.toTypedArray() ?: board
-                    currentPlayer = data["currentPlayer"] as Int
-                    winner = data["winner"] as Int
+                    currentPlayer = data["CurrentPlayer"] as Int
+                    winner = data["Winner"] as Int
                 }
             }
         onDispose{gameListener.remove()}
@@ -139,19 +156,20 @@ fun OnlineGame(players: List<String>, navController: NavController, uniqueID: St
         Spacer(modifier = Modifier.height(16.dp))
 
         if(winner != -1 && !isWinRecorded){
-            if(winner == players.indexOf(uniqueID)) {
-                db.collection("User").document(uniqueID)
-                    .update(
-                        "Win", FieldValue.increment(1)
-                        , "Games Played", FieldValue.increment(1)
-                    )
-            }else{
-                db.collection("User").document(uniqueID)
-                    .update(
-                        "Loss", FieldValue.increment(1)
-                        ,"Games Played", FieldValue.increment(1)
-                    )
-            }
+            val winnerUser = players[winner]
+            val loserUser = players[(winner + 1) % players.size]
+
+            db.collection("User").document(winnerUser)
+                .update(
+                    "Win", FieldValue.increment(1),
+                    "Games Played", FieldValue.increment(1)
+                )
+            db.collection("User").document(loserUser)
+                .update(
+                    "Loss", FieldValue.increment(1),
+                    "Games Played", FieldValue.increment(1)
+                )
+
             isWinRecorded = true
             GameOverView(player = winner, onRestart = {
                     board = Array(6){IntArray(7){-1}}
@@ -160,8 +178,8 @@ fun OnlineGame(players: List<String>, navController: NavController, uniqueID: St
                     isWinRecorded = false
                 },
                 navController = navController,
-                uniqueID = uniqueID,
-                gameTag = gameTag,
+                gameTag = userInfo?.gameTag ?: "",
+                uniqueID = userInfo?.uniqueID ?: "",
                 uniqueGameID = uniqueGameID
             )
 
@@ -173,8 +191,8 @@ fun OnlineGame(players: List<String>, navController: NavController, uniqueID: St
 
         Button(
             onClick = {
-                navController.navigate("lobby/${uniqueID}/${gameTag}"){
-                    popUpTo("lobby/${uniqueID}/${gameTag}"){inclusive = true}
+                navController.navigate("lobby"){
+                    popUpTo("lobby"){inclusive = true}
                 }
             }
         ){

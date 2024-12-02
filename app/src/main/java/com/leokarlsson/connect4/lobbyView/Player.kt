@@ -18,7 +18,13 @@ import java.util.UUID
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.ui.platform.LocalContext
 import android.widget.Toast
-import com.leokarlsson.connect4.gameEngine.GameRequestListener
+import java.io.Serializable
+
+
+data class UserInfo(
+    val gameTag: String,
+    val uniqueID: String
+) : Serializable
 
 @Composable
 fun CreatePlayerScreen(navController:NavController){
@@ -26,6 +32,7 @@ fun CreatePlayerScreen(navController:NavController){
     val isTitleValid = gameTag.length > 3
     val firestore = FirebaseFirestore.getInstance()
     val context = LocalContext.current
+
 
     Scaffold{padding ->
         Column(
@@ -58,8 +65,11 @@ fun CreatePlayerScreen(navController:NavController){
                         .document(uniqueID)
                         .set(playerData)
                         .addOnSuccessListener {
+                            val userInfo = UserInfo(gameTag = gameTag, uniqueID = uniqueID)
                             Toast.makeText(context, "Player Created!", Toast.LENGTH_SHORT).show()
-                            navController.navigate("lobby/${uniqueID}/${gameTag}")
+                            navController.navigate("lobby"){
+                                navController.currentBackStackEntry?.savedStateHandle?.set("userInfo", userInfo)
+                            }
                         }
                         .addOnFailureListener {
                             Toast.makeText(context, "Failed to create player", Toast.LENGTH_SHORT).show()
@@ -82,12 +92,15 @@ fun CreatePlayerScreen(navController:NavController){
                                     .document(document.id)
                                     .update("Status", "Online")
                                     .addOnSuccessListener {
+                                        val userInfo = UserInfo(gameTag = gameTag, uniqueID = uniqueID)
                                         Toast.makeText(context, "Login Successful!", Toast.LENGTH_SHORT).show()
-                                        navController.navigate("lobby/${uniqueID}/${gameTag}")
+                                        navController.navigate("lobby"){
+                                            navController.currentBackStackEntry?.savedStateHandle?.set("userInfo", userInfo)
+                                        }
                                     }
-                                    .addOnFailureListener({ exception ->
+                                    .addOnFailureListener{ exception ->
                                             Toast.makeText(context, "Failed to login: ${exception.message}", Toast.LENGTH_SHORT).show()
-                                    })
+                                    }
                             } else {
                                 Toast.makeText(context, "Player not found", Toast.LENGTH_SHORT).show()
                             }

@@ -23,18 +23,13 @@ import androidx.compose.material3.Button
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
-
-class AccountStatus(
-    val wins:Int,
-    val loss:Int,
-    val draws:Int,
-    val gamesPlayed:Int
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AccountScreen(navController: NavController, uniqueID:String?, account: AccountStatus, gameTag: String ){
+fun AccountScreen(navController: NavController ){
     val firestore = FirebaseFirestore.getInstance()
+    val userInfo = navController.previousBackStackEntry
+        ?.savedStateHandle
+        ?.get<UserInfo>("userInfo")
 
     Scaffold(
         topBar = {
@@ -48,7 +43,7 @@ fun AccountScreen(navController: NavController, uniqueID:String?, account: Accou
                     }
                 },
                 actions = {
-                    IconButton(onClick = {navController.navigate("DeleteAccount/$uniqueID")}){
+                    IconButton(onClick = {navController.navigate("DeleteAccount")}){
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Delete Account",
@@ -71,16 +66,12 @@ fun AccountScreen(navController: NavController, uniqueID:String?, account: Accou
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Column{
-                Text(text = "GameTag: $gameTag", modifier = Modifier.padding(8.dp))
-                Text(text = "Wins: ${account.wins}", modifier = Modifier.padding(8.dp))
-                Text(text = "Losses: ${account.loss}", modifier = Modifier.padding(8.dp))
-                Text(text = "Draws: ${account.draws}", modifier = Modifier.padding(8.dp))
-                Text(text = "Games Played: ${account.gamesPlayed}", modifier = Modifier.padding(8.dp))
-                Text(text = "PlayerID: ${uniqueID ?: "Not Available"}", modifier = Modifier.padding(8.dp))
+                Text(text = "GameTag: ${userInfo?.gameTag}", modifier = Modifier.padding(8.dp))
+                Text(text = "PlayerID: ${userInfo?.uniqueID}", modifier = Modifier.padding(8.dp))
             }
                 Button(onClick = {
                     firestore.collection("User")
-                        .document(uniqueID?: "")
+                        .document(userInfo?.uniqueID?: "")
                         .update("Status", "Offline")
 
                     navController.navigate("createPlayer")},
@@ -96,7 +87,11 @@ fun AccountScreen(navController: NavController, uniqueID:String?, account: Accou
 }
 
 @Composable
-fun DeleteAccount(navController: NavController, uniqueID:String){
+fun DeleteAccount(navController: NavController){
+    val userInfo = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.get<UserInfo>("userInfo")
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxSize()
@@ -115,7 +110,7 @@ fun DeleteAccount(navController: NavController, uniqueID:String){
             ){
                 Button(onClick = {
                     val db = FirebaseFirestore.getInstance()
-                    db.collection("User").document(uniqueID).delete()
+                    db.collection("User").document(userInfo?.uniqueID?: "").delete()
                     navController.navigate("createPlayer"){
                         popUpTo("createPlayer"){ inclusive = true}
                     }

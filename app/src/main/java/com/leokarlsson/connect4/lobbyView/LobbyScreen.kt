@@ -36,12 +36,15 @@ import androidx.compose.foundation.layout.width
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LobbyScreen(navController: NavController, uniqueID: String, gameTag: String){
+fun LobbyScreen(navController: NavController){
     val db = FirebaseFirestore.getInstance()
     var requestAccepted by remember { mutableStateOf(false) }
     var requestID by remember { mutableStateOf("") }
     var senderUsername by remember { mutableStateOf("") }
     var gameID by remember { mutableStateOf("") }
+    val userInfo = navController.previousBackStackEntry
+        ?.savedStateHandle
+        ?.get<UserInfo>("userInfo")
 
     Scaffold(
         topBar = {
@@ -49,7 +52,9 @@ fun LobbyScreen(navController: NavController, uniqueID: String, gameTag: String)
                 title = { Text("Lobby") },
                 actions = {
                     IconButton(onClick = {
-                        navController.navigate("account/${uniqueID}/${gameTag}")}) {
+                        navController.navigate("account"){
+                            navController.currentBackStackEntry?.savedStateHandle?.set("userInfo", userInfo)
+                        }}) {
                         Icon(
                             imageVector = Icons.Default.AccountCircle,
                             contentDescription = "account",
@@ -60,7 +65,9 @@ fun LobbyScreen(navController: NavController, uniqueID: String, gameTag: String)
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = {navController.navigate("search/${gameTag}")},
+            FloatingActionButton(onClick = {navController.navigate("search"){
+                navController.currentBackStackEntry?.savedStateHandle?.set("userInfo", userInfo)
+            } },
                 modifier = Modifier.offset(y = (-80).dp)){
                 Icon(imageVector = Icons.Default.Search, contentDescription = "search")
             }
@@ -74,11 +81,13 @@ fun LobbyScreen(navController: NavController, uniqueID: String, gameTag: String)
             ) {
                 Text("Players: ", modifier = Modifier.padding(start = 15.dp))
 
-                Button(onClick = { navController.navigate("localGame/${uniqueID}/${gameTag}") }) {
+                Button(onClick = { navController.navigate("localGame") }) {
                     Text("Local Game")
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = { navController.navigate("GameRequestBox/${gameTag}")}){
+                Button(onClick = { navController.navigate("GameRequestBox"){
+                    navController.currentBackStackEntry?.savedStateHandle?.set("userInfo", userInfo)
+                } }){
                     Text("Game Requests")
                 }
             }
@@ -86,7 +95,7 @@ fun LobbyScreen(navController: NavController, uniqueID: String, gameTag: String)
     )
     DisposableEffect(Unit){
         val listener = db.collection("GameRequest")
-            .whereEqualTo("Sender", gameTag)
+            .whereEqualTo("Sender", userInfo?.gameTag)
             .whereEqualTo("Status", "Accepted")
             .addSnapshotListener { snapshots, error ->
                 if (error != null) {
@@ -132,7 +141,7 @@ fun LobbyScreen(navController: NavController, uniqueID: String, gameTag: String)
                         }
 
                     db.collection("GameRequest").document(requestID).delete()
-                    navController.navigate("lobby/${uniqueID}/${gameTag}")
+                    navController.navigate("lobby")
                 }){
                     Text("Cancel Game")
                 }
@@ -143,10 +152,11 @@ fun LobbyScreen(navController: NavController, uniqueID: String, gameTag: String)
                         .get()
                         .addOnSuccessListener{querySnapshot ->
                             for(document in querySnapshot.documents){
-                                db.collection("game").document(document.id).update("Player2", gameTag)
+                                db.collection("game").document(document.id)
+                                    .update("Player2", userInfo?.gameTag, "GameReady", "Yes")
                             }
                         }
-                    navController.navigate("onlineGame/${uniqueID}/${gameTag}")}
+                    navController.navigate("onlineGame")}
                 ){
                     Text("Join Game")
                 }

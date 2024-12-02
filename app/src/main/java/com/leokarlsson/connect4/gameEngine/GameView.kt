@@ -37,8 +37,8 @@ fun GameOverView(player: Int, onRestart: () -> Unit, navController: NavControlle
 
             Button(
                 onClick = {
-                    navController.navigate("lobby/${uniqueID}/${gameTag}"){
-                        popUpTo("lobby/${uniqueID}/${gameTag}"){inclusive = true}
+                    navController.navigate("lobby"){
+                        popUpTo("lobby"){inclusive = true}
                     }
                 }
             ){
