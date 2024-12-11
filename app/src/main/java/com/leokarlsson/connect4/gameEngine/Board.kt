@@ -23,34 +23,44 @@ fun BoardCreation(board: Array<IntArray>, onCellClick: (Int) -> Unit){
         modifier = Modifier
             .padding(16.dp)
             .background(MaterialTheme.colorScheme.primaryContainer)
+            .fillMaxWidth()
     ){
-        for(row in 0 until 6){
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ){
-                for(column in 0 until 7){
-                    GameCell(
-                        color = when(board[row][column]){
-                            0 -> Color.Red
-                            1 -> Color.Blue
-                            else -> Color.LightGray
-                        },
-                        onClick = {onCellClick(column)}
-                    )
-                }
-            }
+        board.forEachIndexed{ rowIndex, row ->
+            BoardRow(row, onCellClick)
         }
     }
 }
 
 @Composable
-fun GameCell(color: Color = Color.LightGray, onClick: () -> Unit){
+fun BoardRow(row: IntArray, onCellClick: (Int) -> Unit){
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.Center
+    ){
+        row.forEachIndexed{columnIndex, cellValue ->
+            GameCell(
+                color = when(cellValue){
+                    0 -> Color.Red
+                    1 -> Color.Blue
+                    else -> Color.LightGray
+                },
+                onClick = {
+                    if (cellValue == -1) onCellClick(columnIndex)},
+                enabled = cellValue == -1
+            )
+        }
+    }
+}
+
+@Composable
+fun GameCell(color: Color, onClick: () -> Unit, enabled: Boolean = true){
     Box(
         modifier = Modifier
             .size(50.dp)
             .padding(4.dp)
-            .clickable{ onClick() },
+            .clickable(enabled = enabled){onClick()},
         contentAlignment = Alignment.Center
     ){
         //Content of the cell

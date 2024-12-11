@@ -19,19 +19,25 @@ import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.ui.platform.LocalContext
 import android.widget.Toast
 import java.io.Serializable
+import androidx.compose.runtime.LaunchedEffect
 
 
 data class UserInfo(
-    val gameTag: String,
-    val uniqueID: String
+    val gameTag: String? = null,
+    val uniqueID: String? = null,
+    val status: String? = null,
 ) : Serializable
 
 @Composable
-fun CreatePlayerScreen(navController:NavController){
+fun CreatePlayerScreen(navController:NavController, viewModel: GameViewModel){
     var gameTag by remember {mutableStateOf("")}
     val isTitleValid = gameTag.length > 3
     val firestore = FirebaseFirestore.getInstance()
     val context = LocalContext.current
+
+    LaunchedEffect(Unit){
+        viewModel.listenUsers()
+    }
 
 
     Scaffold{padding ->
@@ -52,20 +58,15 @@ fun CreatePlayerScreen(navController:NavController){
                 if(gameTag.isNotBlank() && isTitleValid){
                     val uniqueID = UUID.randomUUID().toString()
                     val playerData = hashMapOf(
-                        "ID" to uniqueID,
-                        "Username" to gameTag,
-                        "Win" to 0,
-                        "Loss" to 0,
-                        "Draw" to 0,
-                        "Games Played" to 0,
-                        "LocalWin" to 0,
-                        "Status" to "Online"
+                        "uniqueID" to uniqueID,
+                        "gameTag" to gameTag,
+                        "status" to "Online",
                     )
                     firestore.collection("User")
                         .document(uniqueID)
                         .set(playerData)
                         .addOnSuccessListener {
-                            val userInfo = UserInfo(gameTag = gameTag, uniqueID = uniqueID)
+                            val userInfo = UserInfo(gameTag = gameTag, uniqueID = uniqueID, status = "Online")
                             Toast.makeText(context, "Player Created!", Toast.LENGTH_SHORT).show()
                             navController.navigate("lobby"){
                                 navController.currentBackStackEntry?.savedStateHandle?.set("userInfo", userInfo)
@@ -81,18 +82,18 @@ fun CreatePlayerScreen(navController:NavController){
             Button(onClick = {
                 if (gameTag.isNotBlank() && isTitleValid) {
                     firestore.collection("User")
-                        .whereEqualTo("Username", gameTag)
+                        .whereEqualTo("gameTag", gameTag)
                         .get()
                         .addOnSuccessListener { querySnapshot ->
                             if (!querySnapshot.isEmpty) {
                                 val document = querySnapshot.documents[0]
-                                val uniqueID = document.getString("ID") ?: ""
+                                val uniqueID = document.getString("uniqueID") ?: ""
 
                                 firestore.collection("User")
                                     .document(document.id)
-                                    .update("Status", "Online")
+                                    .update("status", "Online")
                                     .addOnSuccessListener {
-                                        val userInfo = UserInfo(gameTag = gameTag, uniqueID = uniqueID)
+                                        val userInfo = UserInfo(gameTag = gameTag, uniqueID = uniqueID, status = "Online")
                                         Toast.makeText(context, "Login Successful!", Toast.LENGTH_SHORT).show()
                                         navController.navigate("lobby"){
                                             navController.currentBackStackEntry?.savedStateHandle?.set("userInfo", userInfo)

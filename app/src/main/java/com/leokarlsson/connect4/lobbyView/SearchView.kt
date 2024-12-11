@@ -26,8 +26,17 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import java.util.UUID
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import android.util.Log
 
 
+data class RequestInfo(
+    val gameID: String? = null,
+    val challenger: String? = null,
+    val receiver: String? = null,
+    val status: String? = null
+){}
 
 @Composable
 fun SearchScreen(onSearch: (String) -> Unit){
@@ -88,7 +97,7 @@ fun SearchBar(navController: NavController){
                 Text("No Players Found.")
             } else {
                 searchResults.forEach { player ->
-                    val username = player["Username"] as? String ?: "Unknown"
+                    val username = player["gameTag"] as? String ?: "Unknown"
                     OtherPlayerInfo(receiverName = username, senderName = userInfo?.gameTag, navController)
                 }
             }
@@ -98,6 +107,9 @@ fun SearchBar(navController: NavController){
 
 @Composable
 fun OtherPlayerInfo(receiverName: String, senderName: String?, navController: NavController){
+    val userInfo = navController.previousBackStackEntry
+        ?.savedStateHandle
+        ?.get<UserInfo>("userInfo")
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -119,17 +131,21 @@ fun OtherPlayerInfo(receiverName: String, senderName: String?, navController: Na
         }
         Spacer(modifier = Modifier.padding(10.dp))
         Button(onClick = {
-            val db = FirebaseFirestore.getInstance()
+            val db = Firebase.firestore
             val gameID = UUID.randomUUID().toString()
             val request = mapOf(
-                "GameID" to gameID,
-                "Sender" to senderName,
-                "Receiver" to receiverName,
-                "Status" to "Pending",
+                "gameID" to gameID,
+                "challenger" to senderName,
+                "receiver" to receiverName,
+                "status" to "Pending",
             )
             db.collection("GameRequest").add(request)
                 .addOnSuccessListener{
                     println("Game request sent successfully")
+                    navController.navigate("lobbyGameID/${gameID}"){
+                        navController.currentBackStackEntry?.savedStateHandle?.set("userInfo", userInfo)
+                        Log.d("SearchView", "Navigated to LobbyGameID with gameID: $gameID")
+                    }
                 }
                 .addOnFailureListener{
                     println("Failed to send game request")
@@ -144,8 +160,8 @@ fun searchForPlayers(query: String, onResults: (List<Map<String, Any>>) -> Unit)
     val db = FirebaseFirestore.getInstance()
 
     db.collection("User")
-        .whereGreaterThanOrEqualTo("Username", query)
-        .whereLessThanOrEqualTo("Username", query + "\uf8ff")
+        .whereGreaterThanOrEqualTo("gameTag", query)
+        .whereLessThanOrEqualTo("gameTag", query + "\uf8ff")
         .get()
         .addOnSuccessListener { result ->
             val players = result.documents.map { it.data ?: emptyMap<String, Any>()}

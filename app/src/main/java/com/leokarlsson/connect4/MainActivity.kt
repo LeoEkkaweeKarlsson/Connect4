@@ -19,9 +19,12 @@ import com.leokarlsson.connect4.lobbyView.SearchBar
 import com.leokarlsson.connect4.gameEngine.Connect4LogicLocal
 import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.leokarlsson.connect4.gameEngine.GameRequestBox
-import com.leokarlsson.connect4.gameEngine.OnlineGameInit
+import com.leokarlsson.connect4.gameEngine.GameRequestScreen
 import com.leokarlsson.connect4.gameEngine.OnlineGame
+import com.leokarlsson.connect4.lobbyView.WaitingForGame
+import com.leokarlsson.connect4.lobbyView.LobbyGameScreen
+import com.leokarlsson.connect4.lobbyView.GameViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 
 class MainActivity : ComponentActivity() {
@@ -38,9 +41,11 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(), color  = MaterialTheme.colorScheme.background
                 ){
                     val navController = rememberNavController()
+                    val viewModel: GameViewModel = viewModel()
+
                     NavHost(navController = navController, startDestination = "createPlayer"){
                         composable("createPlayer"){
-                            CreatePlayerScreen(navController = navController)
+                            CreatePlayerScreen(navController = navController, viewModel = viewModel)
                         }
                         composable("lobby"){
                             LobbyScreen(navController = navController)
@@ -62,13 +67,16 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("GameRequestBox"){
-                            GameRequestBox(navController = navController)
+                            GameRequestScreen(navController = navController, viewModel = viewModel)
                         }
-                        composable("onlineGameLoading"){
-                            OnlineGameInit(navController = navController)
+                        composable("lobbyGameID/{gameID}"){
+                            LobbyGameScreen(navController = navController, gameID = it.arguments?.getString("gameID")?:"", viewModel = viewModel)
                         }
-                        composable("onlineGame"){
-                            OnlineGame(navController = navController)
+                        composable("waitingForGame/{gameID}"){
+                            WaitingForGame(navController = navController, gameID = it.arguments?.getString("gameID")?:"", viewModel = viewModel)
+                        }
+                        composable("onlineGame/{gameID}"){
+                            OnlineGame(navController = navController, gameID = it.arguments?.getString("gameID")?:"", viewModel = viewModel)
                         }
                     }
                 }
