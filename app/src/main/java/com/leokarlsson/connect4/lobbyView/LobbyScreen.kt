@@ -40,8 +40,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.delay
 
-
-
 class GameViewModel : ViewModel(){
     private val db = Firebase.firestore
 
@@ -250,7 +248,7 @@ class GameViewModel : ViewModel(){
                 updatedBoard[index] = _currentPlayer.value
                 val isWin = checkForWin(row, column, _currentPlayer.value)
                 val nextPlayer = if(_currentPlayer.value == 0) 1 else 0
-                val winner = if(isWin) _currentPlayer.value else -1
+                _winner.value = if(isWin) _currentPlayer.value else -1
 
                 _currentPlayer.value = nextPlayer
                 _board.value = updatedBoard.chunked(7).map { it.toIntArray()}.toTypedArray()
@@ -267,7 +265,7 @@ class GameViewModel : ViewModel(){
                                 .update(
                                     "board", updatedBoard,
                                     "currentPlayer", nextPlayer,
-                                    "winner", winner,
+                                    "winner", _winner.value,
                                     "lastMove", mapOf("row" to row, "column" to column)
                                 )
                         }
@@ -301,15 +299,33 @@ class GameViewModel : ViewModel(){
         }
     }
 
-    fun resetGame(gameID: String){
-        val emptyBoard = Array(6){IntArray(7){-1} }
-        db.collection("game").document(gameID).set(
-            mapOf(
-                "board" to emptyBoard.map{it.toList()},
-                "currentPlayer" to 0,
-                "winner" to -1
-            )
-        )
+    fun resetGame(gameID: String, player1Tag: String, player2Tag: String){
+        val emptyBoard = List(6*7){-1L}
+        db.collection("game")
+            .whereEqualTo("gameID", gameID)
+            .addSnapshotListener{snapshot, error ->
+                if(error != null){
+                    Log.e("ResetGame", "Error")
+                    return@addSnapshotListener
+                }
+                snapshot?.documents?.forEach{ document ->
+                    val docID = document.id
+
+                    db.collection("game").document(docID).set(
+                        mapOf(
+                            "gameID" to gameID,
+                            "player1" to player1Tag,
+                            "player2" to player2Tag,
+                            "board" to emptyBoard,
+                            "currentPlayer" to 0,
+                            "winner" to -1,
+                            "loser" to "",
+                            "lastMove" to mapOf<String, Long>(),
+                            "gameIsReady" to true
+                        )
+                    )
+                }
+            }
     }
 
 

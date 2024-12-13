@@ -72,7 +72,7 @@ fun AccountScreen(navController: NavController ){
                 Button(onClick = {
                     firestore.collection("User")
                         .document(userInfo?.uniqueID?: "")
-                        .update("Status", "Offline")
+                        .update("status", "Offline")
 
                     navController.navigate("createPlayer")},
                     modifier = Modifier

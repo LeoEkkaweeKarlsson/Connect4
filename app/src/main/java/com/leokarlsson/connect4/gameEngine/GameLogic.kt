@@ -62,7 +62,7 @@ fun Connect4LogicLocal(navController: NavController, uniqueID: String, gameTag: 
                 currentPlayer = 0
                 winner = -1
                 isWinRecorded = false
-            }, navController, uniqueID, gameTag, uniqueGameID)
+            }, navController)
 
         }else{
             Text(text = "Player ${currentPlayer + 1}'s turn", color = Color.Black)

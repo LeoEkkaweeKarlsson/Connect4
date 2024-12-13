@@ -27,6 +27,7 @@ fun OnlineGame(navController: NavController, gameID: String, viewModel: GameView
     val board by viewModel.board.collectAsStateWithLifecycle()
     val winner by viewModel.winner.collectAsStateWithLifecycle()
     val playerMapState by viewModel.playerMap.collectAsStateWithLifecycle()
+    val gameMapState by viewModel.gameMap.collectAsStateWithLifecycle()
     val isMyTurn by viewModel.isMyTurn.collectAsStateWithLifecycle()
     val userInfo = navController.previousBackStackEntry
         ?.savedStateHandle
@@ -35,12 +36,16 @@ fun OnlineGame(navController: NavController, gameID: String, viewModel: GameView
 
     val uniqueID = playerMapState.keys.find{it == userInfo?.uniqueID} ?: ""
     val gameTag = playerMapState[uniqueID]?.gameTag ?: ""
+    val player1Tag = gameMapState[gameID]?.player1 ?: "player1"
+    val player2Tag = gameMapState[gameID]?.player2 ?: "player2"
 
     Log.d("OnlineGame", "Navigated Successfully")
     Log.d("OnlineGame", "playerMapState: $playerMapState")
     Log.d("OnlineGame", "uniqueID: $uniqueID")
     Log.d("OnlineGame", "gameTag: $gameTag")
     Log.d("OnlineGame", "uniqueGameID: $gameID")
+    Log.d("OnlineGame", "winner: $winner")
+    Log.d("OnlineGame", "player1Tag: $player1Tag, player2Tag: $player2Tag")
 
     LaunchedEffect(Unit){
         viewModel.onlineGameStateListener(gameID, gameTag)
@@ -63,9 +68,12 @@ fun OnlineGame(navController: NavController, gameID: String, viewModel: GameView
         Spacer(modifier = Modifier.height(16.dp))
 
         if(winner != -1) {
-            GameOverView(winner, {
-                viewModel.resetGame(gameID)
-            }, navController, uniqueID, gameTag, gameID)
+            GameOverViewOnline(winner,
+                navController,
+                gameID,
+                player1Tag,
+                player2Tag
+                )
         }else{
             Text(
                 text = if(isMyTurn) "Your Turn" else "Waiting for opponent...",
